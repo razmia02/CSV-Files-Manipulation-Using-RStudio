@@ -1,0 +1,40 @@
+###Automating csv files manipuations###
+
+# Set the path to the folder containing the CSV files
+path <- "path/to/folder"
+print(path)
+
+# Get a list of all CSV files in the folder
+csv_files <- list.files(path, pattern = ".csv", full.names = TRUE)
+print(csv_files)
+
+# Loop to automate the manipulation tasks
+for (file in csv_files) {
+  
+  # Read in the data from the CSV file
+  data <- read.csv(file)
+  
+  # Rename the columns and create a new data frame
+  data <- data.frame(ligand = data$Entry.Name, docking_score = data$docking.score)
+  
+  # Write the new data frame to an already existing csv file
+  write.csv(data, paste0(file, " "), row.names = FALSE)
+  
+  # Extract the protein name from the filename using regular expressions
+  protein_name <- gsub("^.*-\\s*|\\.csv$", "", file)
+  
+  # Add ProteinID column
+  data$ProteinID <- protein_name
+  
+  # Write the modified dataframe back to the csv file
+  write.csv(data, file, row.names = FALSE)
+  data <- read.csv(file)
+  data <- data[complete.cases(data$docking_score), ]
+  write.csv(data, file, row.names = FALSE)
+  
+  # Remove row with "entry.1" from "ligand" column
+  data <- data[data$ligand != "entry.1", ]
+  
+  # Write updated data to CSV file
+  write.csv(data, file, row.names = FALSE)
+}
